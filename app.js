@@ -1,6 +1,6 @@
 // this is about the same as "use fruitsDB" on the command line
 
-const mongoose = require("mongoose");
+const mongoose = require ( "mongoose" );
 
 // Connection URL
 const url = 'mongodb://localhost:27017';
@@ -9,65 +9,76 @@ const url = 'mongodb://localhost:27017';
 const dbName = 'fruitsDB';
 
 // Create a new mongoose
-const client = new mongoose.connect(
+const client = new mongoose.connect (
     url + "/" + dbName,
     {
         useUnifiedTopology: true,
         useNewUrlParser: true
     } );
 
-const fruitSchema = new mongoose.Schema({
-   name: String,
-   rating: Number,
-   review: String
-});
+const fruitSchema = new mongoose.Schema ( {
+    name: {
+        type: String,
+        required: [true, "Name is required"]
+    },
+    rating: {
+        type: Number,
+        min: 1,
+        max: 10
+    },
+    review: String
+} );
 
-const Fruit = mongoose.model("Fruit", fruitSchema);
+const Fruit = mongoose.model ( "Fruit", fruitSchema );
 
-const apple = new Fruit( {
-    name: "Apple",
-    rating: 7,
-    review: "Pretty solid as a fruit"
-});
-
-const personSchema = new mongoose.Schema({
+const personSchema = new mongoose.Schema ( {
     name: String,
-    age: Number
+    age: Number,
+    favoriteFruit: fruitSchema
+} );
+
+const apple = new Fruit ( {
+    name: "Apple",
+    rating: 2,
+    review: "Pretty solid as a fruit"
+} );
+
+// apple.save ();
+
+const peach = new Fruit ( {
+    name: "Peach",
+    rating: 10,
+    review: "who doesn't love peaches"
+} );
+
+// peach.save();
+
+const pineapple = new Fruit({
+    name: "Pineapple",
+    rating: 7,
+    review: "a bit prickly"
 });
 
-const Person = mongoose.model("Person", personSchema);
+const kiwi = new Fruit ( {
+    name: "Kiwi",
+    rating: 3,
+    review: "kind of a hairy fruit"
+} );
 
-const person = new Person({
-   name: "John",
-   age: 65
-});
-
-// person.save();
-
-const kiwi = new Fruit({
-   name: "Kiwi",
-   rating: 3,
-   review: "kind of a hairy fruit"
-});
-
-const orange = new Fruit({
+const orange = new Fruit ( {
     name: "Orange",
     rating: 4,
     review: "Too sour for me"
-});
+} );
 
-const banana = new Fruit({
-   name: "banana",
-   rating: 3,
-   review: "weird texture"
-});
+const banana = new Fruit ( {
+    name: "banana",
+    rating: 3,
+    review: "weird texture"
+} );
 
-Fruit.insertMany([
-    kiwi,
-    orange,
-    banana,
-    apple
-], function (err) {
+// Uncomment to add fruits to database
+Fruit.insertMany([kiwi, orange, banana, apple, pineapple], function (err) {
     if(err){
         console.log (err);
     }
@@ -76,45 +87,67 @@ Fruit.insertMany([
     }
 });
 
-const insertFruits = function (db, callback) {
-    // Get the fruits collection
-    const fruits = db.collection('fruits');
+const Person = mongoose.model ( "Person", personSchema );
 
-    // insert some stuff
-    fruits.insertMany([
-        {
-            name: "Apple",
-            score: 8,
-            review: "great fruit"
-        },
-        {
-            name: "Orange",
-            score: 6,
-            review: "Kinda Sour"
-        },
-        {
-            name: "Banana",
-            score: 9,
-            review: "Great Stuff"
-        }
-    ], function (err, result) {
-        assert.equal(err, null);
-        assert.equal(result.result.n, 3);
-        assert.equal(result.ops.length, 3);
-        console.log ("inserted 3 documents");
-        callback(result);
-    });
-};
+const john = new Person ( {
+    name: "John",
+    age: 65,
+    favoriteFruit: kiwi
+} );
 
-const findFruits = function (db, callback) {
-    // Get the fruits collection
-    const fruits = db.collection("fruits");
+const amy = new Person ({
+   name: "Amy",
+   age: 12,
+   favoriteFruit: pineapple
+});
 
-    // Find some fruit
-    fruits.find({}).toArray(function(err, docs){
-       assert.equal(err, null);
-        console.log ("found the following record");
-        console.log (docs);
-        callback(docs);
-    });
-};
+// Uncomment to add fruits to database
+Person.insertMany([john, amy], (err) =>{
+    if(err){
+        console.log (err)
+    }
+    else{
+        console.log ("inserted people");
+    }
+});
+
+// Person.updateOne({name: "John"}, {favoriteFruit: kiwi }, (err) => {
+//     if(err){
+//         console.log ("failed to update John");
+//     }else{
+//         console.log ("updated John");
+//     }
+// });
+
+Fruit.find ( function (err, fruits) {
+    if (err) {
+        console.log ( err );
+    } else {
+        fruits.forEach ( (fruit) => {
+            console.log ( fruit.name + ": " + fruit.rating )
+        } );
+    }
+    mongoose.connection.close ();
+} );
+//
+// const res = Fruit.updateOne ( {_id: "5e9b781673752b7064c8d95c"}, {name: "Peach"}, function (err) {
+//     if (err) {
+//         console.log ( err );
+//     } else {
+//         console.log ( "updated peach" );
+//     }
+// } );
+// console.log ( res );
+//
+// Fruit.deleteOne ( {name: "Peach"}, function (err) {
+//     if (err) {
+//         console.log ( err );
+//     } else {
+//         console.log ( "deleted peach" );
+//     }
+// } )
+
+// Fruit.deleteMany ( {name: /\*/}, (err) => {
+// } );
+// Fruit.deleteMany ( {score: {$gt: 0}}, (err) => {
+// } );
